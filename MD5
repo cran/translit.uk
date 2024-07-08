@@ -1,0 +1,10 @@
+5fadc5b55e6dc83bf6d094cfa6c80b38 *DESCRIPTION
+acd4d9bad3b2ff498e61a44556b69666 *LICENSE
+36e41b9471d994e773515d0671a3262f *NAMESPACE
+b7c756a1be9e222722fdf6d9bc60ba8c *R/trasnlit.R
+7fb093cc671b4e68041329b4ba96db18 *build/vignette.rds
+b36f53d6893f9847570a11438f6579d6 *inst/doc/introduction.R
+d9115eaec52d314cd4489ef0d91c63aa *inst/doc/introduction.Rmd
+8a184a83ccf409485a6ff7e2d572315b *inst/doc/introduction.html
+e26ddd813400708fa7c1c9722d150930 *man/translit.Rd
+d9115eaec52d314cd4489ef0d91c63aa *vignettes/introduction.Rmd
