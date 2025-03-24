@@ -2,11 +2,13 @@
 # For the reference: https://zakon.rada.gov.ua/laws/show/55-2010-%D0%BF
 
 # Cyryllic letters pattern
-cyryllic_letters_pattern = '[\u0430-\u044f\u0457\u0491\u0454\u0457\u0451]'
+cyryllic_letters_pattern <- '[\u0430-\u044f\u0457\u0491\u0454\u0457\u0451]'
+cyryllic_big_letters_pattern <- '[\u0410-\u042F\u0404\u0406\u0407\u0490]'
+two_big_pattern <- paste0(cyryllic_big_letters_pattern, '[\u0410-\u042F\u0404\u0406\u0407\u0490A-Z]')
 
 # The list of letters which must be handled differently if they are in the beginning of the word
 first_letters_pattern <- '^([\u0454\u0457\u0439\u044e\u044f\u0407])'
-first_letters_pattern2 <- '([^\u0430-\u044f\u0454\u0456\u0457\u0491\u0451\']\'?)([\u0454\u0457\u0439\u044e\u044f])'
+first_letters_pattern2 <- '([^a-z\u0430-\u044f\u0454\u0456\u0457\u0491\u0451])([\u0454\u0457\u0439\u044e\u044f])'
 
 # The pattern "зг" must treated in a different way.
 # The direct transliteration "zh" means "ж". Therefore, the proper transliteration must be "zgh"
@@ -50,8 +52,13 @@ rownames(other_letters) <- c(
 )
 
 # Transliteration of "зг"
-zg_letters <- data.frame(c('Zgh', 'zgh', 'ZGH'))
-rownames(zg_letters) <- c('\u0417\u0433', '\u0437\u0433', '\u0417\u0413')
+zg_letters <- data.frame(c('Zgh', 'zgh', 'zGh', 'ZGH'))
+rownames(zg_letters) <- c('\u0417\u0433', '\u0437\u0433', '\u0437\u0413', '\u0417\u0413')
+
+# Function to replace the string in position
+replace_by_position <- function(text, start, end, replacement) {
+  paste0(substr(text, 1, start - 1), replacement, substr(text, end + 1, nchar(text)))
+}
 
 #' Transliterate string in Ukrainian
 #'
@@ -69,28 +76,71 @@ translit <- function (string) {
     return(s)
   }
   # Replace apostrophes
-  s = gsub(replace_apostrophe_pattern, '\\1\\2', s, ignore.case = T, perl = T)
-
+  s <- gsub(replace_apostrophe_pattern, '\\1\\2', s, ignore.case = T, perl = T)
+  
   # Replace all letters 'зг'
-  while (regexpr(zg_letters_pattern, s, ignore.case = T, perl = T)[1] > 0) {
-    match = regexpr(zg_letters_pattern, s, ignore.case = T, perl = T)
-    str = substr(s, match[1], match[1] + 1)
-    s = sub(substr(s, match[1], match[1] + 1), zg_letters[str,], s)
+  repeat {
+    position <- regexpr(zg_letters_pattern, s, ignore.case = T, perl = T)[1]
+    if (position < 1) break
+    str <- substr(s, position, position + 1)
+    letter_to_check <- substring(s, position + 2, position + 2)
+    capitalize <- regexpr(
+      cyryllic_big_letters_pattern,
+      substring(s, position + 2, position + 2),
+      perl = T
+    )[1] > 0
+    replacement <- zg_letters[str, ]
+    if (capitalize) replacement <- paste0(substr(replacement, 1, 1), 'GH')
+    s <- replace_by_position(s, position, position + 1, replacement)
+  }
+  
+  # Replace the first letter
+  repeat {
+    position <- regexpr(first_letters_pattern, s, ignore.case = T, perl = T)[1]
+    if (position < 1) break
+    capitalize <- regexpr(
+      cyryllic_big_letters_pattern,
+      substring(s, 2, 2),
+      perl = T
+    )[1] > 0
+    replacement <- ifelse(
+      capitalize,
+      toupper(first_letters[substr(s, 1, 1),]),
+      first_letters[substr(s, 1, 1),]
+    )
+    s <- replace_by_position(s, 1, 1, replacement)
+  }
+  repeat {
+    position <- regexpr(first_letters_pattern2, s, ignore.case = T, perl = T)[1]
+    if (position < 1) break
+    str <- substr(s, position + 1, position + 1)
+    letter_to_check <- substr(s, position + 2, position + 2)
+    if (letter_to_check == "") letter_to_check <- substr(s, position, position)
+    capitalize <- regexpr(
+      cyryllic_big_letters_pattern,
+      letter_to_check,
+      perl = T
+    )[1] > 0
+    replacement <- ifelse(
+      capitalize,
+      toupper(first_letters[str, ]),
+      first_letters[str, ]
+    )
+    s <- replace_by_position(s, position + 1, position + 1, replacement)
+  }
+  
+  # Replace other symbols with mixed pattern
+  repeat {
+    position <- regexpr(two_big_pattern, s, ignore.case = F, perl = T)[1]
+    if (position < 1) break
+    str <- substr(s, position, position + 1)
+    replacement <- paste0(toupper(other_letters[substr(str, 1, 1),]), substr(str, 2, 2))
+    s <- replace_by_position(s, position, position + 1, replacement)
   }
 
-  # Replace first letter
-
-  match = regexpr(first_letters_pattern, s, ignore.case = T, perl = T)
-  if (match[1] > 0) {
-    s = sub(substr(s, 1, 1), first_letters[substr(s, 1, 1),], s)
-  }
-  while (regexpr(first_letters_pattern2, s, ignore.case = T, perl = T)[1] > 0) {
-    match = regexpr(first_letters_pattern2, s, ignore.case = T, perl = T)
-    str = substr(s, match[1] + 1, match[1] + 1)
-    s = sub(str, first_letters[str, ], s)
-  }
+  # Replace other symbols with mixed pattern
   for (i in 1:nrow(other_letters)) {
-    s = gsub(rownames(other_letters)[i], other_letters[i,], s)
+    s <- gsub(rownames(other_letters)[i], other_letters[i,], s)
   }
   return(s)
 }

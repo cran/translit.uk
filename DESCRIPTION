@@ -1,6 +1,6 @@
 Package: translit.uk
 Title: Ukrainian to Latin Transliteration
-Version: 1.0.0
+Version: 1.0.2
 Authors@R: 
     person("Kyrylo", "Zakharov", , "kirillzakharov13@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8396-4187"))
@@ -13,8 +13,8 @@ VignetteBuilder: knitr
 URL: https://github.com/Amice13/translit.uk
 BugReports: https://github.com/Amice13/translit.uk/issues
 NeedsCompilation: no
-Packaged: 2024-07-04 14:49:17 UTC; kiril
+Packaged: 2025-03-24 13:18:50 UTC; ZAKHAROK
 Author: Kyrylo Zakharov [aut, cre] (<https://orcid.org/0000-0001-8396-4187>)
 Maintainer: Kyrylo Zakharov <kirillzakharov13@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-07-08 05:10:02 UTC
+Date/Publication: 2025-03-24 14:10:02 UTC
